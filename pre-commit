@@ -1,0 +1,53 @@
+#!/bin/bash
+##########################
+## 检查修改过文件php语法##
+##########################
+
+phpbin="/home/xiaoju/php/bin/php"
+out=`git status`
+branch=`echo $out | awk '{print $4}'`
+echo "branch: ${branch}"
+check=""
+
+#提取modified文件处理
+echo -e "****** modified files ******\n"
+tmpfilelist=`git status | grep 'modified' | awk '{print $3}'`
+tmpresult=`awk -v val="$tmpfilelist" -v php="$phpbin" 'BEGIN {
+    info = val
+    split(info, files, " ")
+    for (i in files) {
+        print "M+"
+        print files[i]
+        cmd= php" -l "files[i]
+        system(cmd)
+    }
+}'`
+echo -e $tmpresult
+check=${check}$tmpresult
+echo -e "******  modified end  ******\n\n"
+
+#提取new add 文件处理
+echo "******   add  files   ******"
+tmpfilelist2=`git status   | sed -n '/Untracked files/,$p'  |sed -n '4,$p'|awk '{print $2}' | tac | sed -n '2,$p'`        
+tmpresult=`awk -v val="$tmpfilelist2" -v php="$phpbin" 'BEGIN {                                              
+    ORS="\n"                                                                                                 
+    info = val                                                                                               
+    split(info, files, " ")                                                                                  
+    for (i in files) {                                                                                       
+        print "A+" files[i] "\\n"                                                                            
+        cmd= php" -l "files[i]                                                                               
+        system(cmd)                                                                                          
+    }                                                                                                        
+}'`                                                                                                          
+echo -e $tmpresult                                                                                           
+check=${check}$tmpresult                                                                                     
+echo -e "******   add  files   ******\n"                                                                     
+                                                                                                             
+#结果检查                                                                                                    
+echo $check                                                                                                  
+result=`echo ${check}|grep 'Errors parsing'`                                                                 
+if $result; then                                                                                             
+    exit 0                                                                                                   
+else                                                                                                         
+    exit 1                                                                                                   
+fi                
