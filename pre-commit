@@ -3,7 +3,7 @@
 ## 检查修改过文件php语法##
 ##########################
 
-phpbin="/home/xiaoju/php/bin/php"
+phpbin="/usr/local/php/bin/php"
 out=`git status`
 branch=`echo $out | awk '{print $4}'`
 echo "branch: ${branch}"
